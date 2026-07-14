@@ -1,0 +1,153 @@
+{
+    "project_name": "MacroScope",
+    "version": "0.1.0-beta-2",
+    "description": "An interactive web dashboard for visualizing and analyzing macroeconomic data using Streamlit, Plotly, and the FRED API.",
+    "tech_stack": {
+        "frontend_backend": "Streamlit",
+        "visualization": "Plotly Express / Graph Objects",
+        "data_manipulation": "Pandas",
+        "api_wrapper": "fredapi"
+    },
+    "core_features": [
+        {
+            "name": "Macro Snapshot Dashboard",
+            "description": "Visualizes key indicators like GDP, CPI (inflation), Unemployment, and Fed Funds Rate. Allows toggle between raw values, YoY % change, and log transformations."
+        },
+        {
+            "name": "Historical Revisions Tracker (ALFRED)",
+            "description": "Explores point-in-time data revisions. Visualizes the difference between initial releases and subsequent revisions using FRED vintage dates."
+        },
+        {
+            "name": "Dynamic Series Search & Multi-Plot comparison",
+            "description": "Provides an in-app search function using fredapi's full-text search capability and allows the user to plot up to 3 custom series side-by-side or on a dual Y-axis."
+        },
+        {
+            "name": "Export Tool",
+            "description": "Enables users to download filtered datasets and comparison views into CSV or Excel formats."
+        }
+    ],
+    "app_structure": {
+        "app.py": "Main entry point for Streamlit application containing page routing and core layout.",
+        "config.py": "API key validation and environment setup.",
+        "data_fetcher.py": "Dedicated utility module wrapping fredapi to fetch and parse series, cache API responses, and run search queries.",
+        "charts.py": "Visualizing functions mapping Pandas dataframes to Plotly interactive figures."
+    },
+    "current_stage": "Stage 5: Industry-Standard Directory Restructuring",
+    "next_steps": [
+        "Verify the installation of libraries inside python environment.",
+        "Draft the Streamlit dialog modal code block for Parameter Customization (Units, Frequency).",
+        "Hook up database.py retrieval functions dynamically with custom charting in the frontend UI.",
+        "Re-organize current skeleton scripts into the new 'src/' directory."
+    ],
+    "user_paths": [
+        {
+            "id": "path_1_search",
+            "name": "Full-Text Discovery & Metadata Review",
+            "steps": [
+                "User inputs search query (e.g., 'GDP of America').",
+                "App calls 'fred_search()' back-end wrapper.",
+                "Results returned in a structured, sortable Streamlit DataFrame.",
+                "User highlights a row and expands the detailed 'notes' container to read the complete methodology and data sources."
+            ],
+            "mapped_functions": [
+                "data_fetcher.search_series()",
+                "st.dataframe()"
+            ]
+        },
+        {
+            "id": "path_2_configure_visualize",
+            "name": "Dynamic Configuration & Plotly Visualization",
+            "steps": [
+                "User selects a specific series ID from search results.",
+                "User triggers the Streamlit Configuration Dialog.",
+                "Dialog reads and exposes customizable parameters (Units transformation: raw, change, % change, YoY; and Aggregation/Frequency).",
+                "User clicks 'Visualize' inside the configuration panel.",
+                "App calls 'get_series_observations()' with parameters and renders an interactive Plotly timeline."
+            ],
+            "mapped_functions": [
+                "data_fetcher.get_series_with_params()",
+                "charts.plot_interactive_timeline()",
+                "st.dialog()"
+            ]
+        }
+    ],
+    "ux_specifications": {
+        "search_ux": "Use st.text_input with a debounce/submit button to prevent excessive api hitting. Paginate or limit search results to top 20 by popularity default.",
+        "dialog_ux": "Utilize modern st.dialog wrapper. Fetch FRED native transformation parameters (lin, chg, pch, pc1, log) and present as human-readable select boxes.",
+        "chart_ux": "Interactive Plotly line chart with dynamic title (Title + Unit + Frequency) and range slider."
+    },
+    "caching_strategy": {
+        "recommended_approach": "Hybrid Caching Strategy (In-Memory + Persistent)",
+        "components": {
+            "hot_cache": {
+                "mechanism": "Streamlit @st.cache_data",
+                "scope": "Global / Session RAM",
+                "purpose": "Instantaneous data re-rendering and UI responsiveness during a live user session. Prevents hitting FRED rate limits on immediate page refreshes."
+            },
+            "cold_cache": {
+                "mechanism": "SQLite Database (local file)",
+                "scope": "Persistent local disk storage",
+                "purpose": "Saves user configurations, dashboard layouts, bookmarks, and keeps an archive of fetched series data to survive app server restarts."
+            }
+        },
+        "future_compatibility": {
+            "bookmarks_enabled": true,
+            "config_retention": "Supports storing user-defined transformation parameters (e.g., 'CPI' with 'YoY % Change' aggregation)."
+        }
+    },
+    "files_created": [
+        "requirements.txt",
+        "database.py",
+        "data_fetcher.py",
+        "charts.py",
+        "app.py"
+    ],
+    "architectural_decisions": {
+        "database_schema": {
+            "sqlite_tables": {
+                "cached_series": "Stores parsed date, value, and unit state mappings to prevent server roundtrips.",
+                "user_configs": "Will store bookmark templates containing target indicators and formatting settings."
+            }
+        },
+        "modular_pipeline": {
+            "persistence_layer": "database.py manages the physical disk storage.",
+            "api_layer": "data_fetcher.py coordinates authentication and routes caching requests between RAM and SQL disk.",
+            "visual_layer": "charts.py handles raw data mapping into modular Plotly express components.",
+            "ui_controller": "app.py dictates routing, rendering dialog forms, and handling application mode bindings."
+        }
+    },
+    "project_structure_v2": {
+        "root": "macroscope/",
+        "layout": {
+            "root_files": [
+                ".env.example (Environment template)",
+                ".gitignore (VCS ignore targets)",
+                "README.md (Developer documentation)",
+                "requirements.txt (Dependencies)",
+                "pyproject.toml (Modern build configuration)"
+            ],
+            "folders": {
+                "assets/": [
+                    "logo.png",
+                    "custom.css"
+                ],
+                "data/": [
+                    "macroscope_cache.db (SQLite database, git-ignored)"
+                ],
+                "src/": [
+                    "__init__.py (Package initialization)",
+                    "app.py (Streamlit frontend controller)",
+                    "config.py (API client configuration & schema constraints)",
+                    "database.py (SQL interface & transaction operations)",
+                    "data_fetcher.py (FRED API interface & Hybrid cache controller)",
+                    "charts.py (Plotly mapping layout and styling components)"
+                ],
+                "tests/": [
+                    "__init__.py",
+                    "test_database.py (Validation of read/write cache operations)",
+                    "test_data_fetcher.py (Mock API integrations & error boundary tests)"
+                ]
+            }
+        }
+    }
+}

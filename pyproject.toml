@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "macroscope"
+version = "0.1.0"
+description = "Macroeconomic visualization tool using FRED API and Streamlit"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "streamlit>=1.35.0",
+    "fredapi>=0.5.2",
+    "pandas>=2.0.0",
+    "plotly>=5.18.0",
+    "python-dotenv>=1.0.0"
+]
