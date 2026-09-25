@@ -2,7 +2,9 @@ import sqlite3
 import pandas as pd
 import json
 
-DB_FILE = "macroscope_cache.db"
+DB_FILE = "macroscope.db"
+
+
 
 def init_db():
     """Initializes the SQLite database with tables for cached series and user configurations."""
@@ -11,35 +13,29 @@ def init_db():
     
     # 1. Cached Series Data (Historical Observations)
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS cached_series (
-            series_id TEXT,
-            date TEXT,
-            value REAL,
-            units TEXT,
-            frequency TEXT,
-            aggregation_method TEXT,
-            fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (series_id, date, units, frequency, aggregation_method)
+        CREATE TABLE IF NOT EXISTS stock (
+            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            currency TEXT,
+            last_updated date
         )
     """)
     
     # 2. User Dashboard Configurations & Bookmarks (Future expansion)
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS user_configs (
-            config_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            series_id TEXT,
-            title TEXT,
-            units TEXT,
-            frequency TEXT,
-            aggregation_method TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        CREATE TABLE IF NOT EXISTS price_data (
+            stock_id INTEGER,
+            time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            price INTEGER,
+            FOREIGN KEY (stock_id) REFERENCES stock(ID)
+            PRIMARY KEY (stock_id, time)
         )
     """)
     
     conn.commit()
     conn.close()
 
-def save_series_to_db(series_id, df, units, frequency, aggregation_method):
+def save_stock(stock_name, currency, last_updated):
     """Saves fetched Pandas DataFrame series observations into the persistent disk cache."""
     if df.empty:
         return
@@ -70,3 +66,6 @@ def get_series_from_db(series_id, units, frequency, aggregation_method):
     if not df.empty:
         return df.set_index('date')['value']
     return None
+
+
+init_db()  # Initialize the database when the module is imported
