@@ -1,8 +1,8 @@
 """
 db.py - Shared database layer for the MacroScope yfinance pipeline.
 
-All new modules (watchlist, price_data, financials, quant, output, integration)
-import from here instead of opening their own connections.
+All new modules (watchlist, price_data, financials, quant, output, integration,
+trades) import from here instead of opening their own connections.
 
 The existing database.py is left untouched (used by the Streamlit/FRED side).
 """
@@ -98,6 +98,22 @@ def init_all_tables() -> None:
             num_analyst_opinions      INTEGER,
             FOREIGN KEY (stock_id) REFERENCES stock(ID),
             UNIQUE (stock_id, snapshot_date)
+        )
+    """)
+
+    # executed_orders (buy & sell trades for P&L tracking)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS executed_orders (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            stock_id      INTEGER NOT NULL,
+            ticker        TEXT    NOT NULL,
+            side          TEXT    NOT NULL CHECK(side IN ('BUY', 'SELL')),
+            executed_at   TEXT    NOT NULL,   -- UTC ISO-8601 timestamp
+            quantity      REAL    NOT NULL,   -- number of shares (fractional allowed)
+            price_cents   INTEGER NOT NULL,   -- execution price in integer cents (x100)
+            fee_cents     INTEGER NOT NULL DEFAULT 0,  -- commission/fee in integer cents
+            notes         TEXT,
+            FOREIGN KEY (stock_id) REFERENCES stock(ID)
         )
     """)
 
