@@ -3,3 +3,6 @@ fredapi>=0.5.2
 pandas>=2.0.0
 plotly>=5.18.0
 python-dotenv>=1.0.0
+scikit-learn>=1.4.0
+statsmodels>=0.14.0
+arch>=7.0.0

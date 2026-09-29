@@ -152,6 +152,9 @@ See `src/db.py` for the full column list grouped by category.
 **Field map**: `INFO_FIELD_MAP` dict in `financials.py` maps 53 DB columns to yfinance `.info` keys.
 
 ### `quant.py`
+
+**Legacy API** (used by integration.py / output.py pipeline):
+
 | Function | Signature | Notes |
 |----------|-----------|-------|
 | `compute_ema` | `(series, span) → pd.Series` | |
@@ -159,11 +162,25 @@ See `src/db.py` for the full column list grouped by category.
 | `generate_signal` | `(close) → dict` | Returns signal, last_close, ema_fast, ema_slow, rsi, trend |
 | `analyse_watchlist` | `() → pd.DataFrame` | All stocks × all signal fields |
 
-**Signal logic**:
+**Signal logic** (legacy):
 - `BUY`:  EMA(20) > EMA(50)  AND  40 < RSI < 70
 - `SELL`: EMA(20) < EMA(50)  AND  RSI < 45
 - `HOLD`: everything else
 - `INSUFFICIENT DATA`: fewer than 64 rows available
+
+**Quantitative algorithm classes** (spec §1.1–§3.2):
+
+| Class | Category | `.run()` Inputs | Key Outputs |
+|-------|----------|-----------------|-------------|
+| `DualEMACrossover` | Momentum | `close_prices` | signal array (+1/-1/0), ema_short, ema_long |
+| `DonchianBreakout` | Momentum | `high, low, close` | signal array, upper/lower channel |
+| `PairsTradingZScore` | Mean-Reversion | `prices_a, prices_b` | spread, z_score, weight_a/b, beta, adf_pvalue |
+| `BollingerBands` | Mean-Reversion | `close_prices` | signal array, middle/upper/lower band |
+| `ARIMAGARCHModel` | Econometrics | `close_prices` | forecast_return, forecast_volatility, position_size |
+| `RandomForestSignal` | ML | `ohlcv DataFrame` | probability_up, signal |
+
+**Dependencies**: scikit-learn, statsmodels, arch (in requirements.txt).
+**Helper**: `fetch_ohlcv(ticker)` downloads OHLCV from yfinance for algorithms needing H/L/V.
 
 ### `trades.py`
 | Function | Signature | Notes |
